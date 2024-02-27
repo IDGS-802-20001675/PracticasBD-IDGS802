@@ -1,2 +1,2 @@
-# Flask_BD_IDGS802
+# PracticasBD-IDGS802
 Segundo Parcial
