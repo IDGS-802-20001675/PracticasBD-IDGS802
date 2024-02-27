@@ -8,3 +8,13 @@ class Alumnos(db.Model):
     apaterno=db.Column(db.String(50))
     email=db.Column(db.String(50))
     create_date=db.Column(db.DateTime, default=datetime.datetime.now)
+
+class Maestros(db.Model):
+    id=db.Column(db.Integer,primary_key=True)
+    nombre=db.Column(db.String(50))
+    apaterno=db.Column(db.String(50))
+    amaterno=db.Column(db.String(50))
+    escolaridad=db.Column(db.String(50))
+    materias=db.Column(db.String(50))
+    email=db.Column(db.String(50))
+    create_date=db.Column(db.DateTime, default=datetime.datetime.now)

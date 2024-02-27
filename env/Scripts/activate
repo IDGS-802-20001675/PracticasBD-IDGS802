@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\vanes\OneDrive\Escritorio\Dessarrollo Web Profesional\Flask_BD_IDGS802\env"
+VIRTUAL_ENV="C:\Users\vanes\OneDrive\Escritorio\Dessarrollo Web Profesional\PracticasBD-IDGS802\env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
