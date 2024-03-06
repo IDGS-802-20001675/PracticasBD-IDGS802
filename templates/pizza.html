@@ -1,0 +1,24 @@
+{% extends 'layout2.html' %}
+
+{% import "_macros.html" as macros %}
+
+{% block content %}
+<h1>Pizzas</h1>
+<form action="" method="POST" novalidate>
+  
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    {{ macros.input_Form(form.nombre) }}
+    {{ macros.input_Form(form.direccion) }}
+    {{ macros.input_Form(form.telefono) }}
+    {{ macros.input_Form(form.numPizza) }}
+    {{ macros.input_Form(form.tamano) }}
+    {{ macros.input_Form(form.ingredientes) }}
+    <input type="submit" name="btn1">
+</form>
+<h1>Nombre: {{ nom }}</h1>
+<h1>Direccion: {{ dire }}</h1>
+<h1>Telefono: {{ tel }}</h1>
+<h1>Numero de pizzas: {{ numP }}</h1>
+<h1>Tamaño: {{ tam }}</h1>
+<h1>Ingredientes: {{ ingr }}</h1>
+{% endblock %}

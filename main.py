@@ -2,17 +2,75 @@ from flask import Flask, request, render_template, flash
 from flask_wtf.csrf import CSRFProtect
 import forms
 from config import DevelopmentConfig
-from models import db, Alumnos, Maestros
+from models import db, Alumnos, Maestros, Pizzas
 
 app = Flask(__name__)
 
 app.config.from_object(DevelopmentConfig)
 csrf = CSRFProtect(app)
 
-
 '''     
 Rutas o decoradores
 '''
+'''     
+Práctica PIZZA
+'''
+@app.route("/pizzas", methods=["GET", "POST"])
+def pizzas():
+    form_pizza = forms.UserForm4(request.form)
+    
+    if request.method == 'POST' and form_pizza.validate():
+        tamano_pizza = form_pizza.tamano.data
+        num_pizza = form_pizza.numPizza.data
+        
+        # Mapear los tamaños de pizza a valores numéricos
+        tamanos = {'Chica': 1, 'Mediana': 2, 'Grande': 3}
+        
+        # Obtener el tamaño seleccionado del formulario
+        tamano_numerico = tamanos.get(tamano_pizza, 0)
+        
+        # Calcular el costo base del tamaño de la pizza
+        costo_base_por_tamano = {'Chica': 40, 'Mediana': 80, 'Grande': 120}
+        costo_base = costo_base_por_tamano.get(tamano_pizza, 0)
+        
+        # Calcular el costo de los ingredientes seleccionados
+        costo_ingredientes = 0
+        if 'jamon' in request.form:
+            costo_ingredientes += 10
+        if 'pina' in request.form:
+            costo_ingredientes += 10
+        if 'champinones' in request.form:
+            costo_ingredientes += 10
+        
+        # Calcular el costo total de la pizza
+        costo_total = (costo_base + costo_ingredientes) * num_pizza
+        
+        # Crear un objeto de pizza con la información recibida
+        nueva_pizza = Pizzas(
+            nombre=form_pizza.nombre.data,
+            direccion=form_pizza.direccion.data,
+            telefono=form_pizza.telefono.data,
+            tamano=tamano_numerico,  # Asignar el valor numérico correspondiente
+            costo=costo_total
+        )
+        
+        # Agregar la nueva pizza a la sesión de la base de datos
+        db.session.add(nueva_pizza)
+        
+        # Hacer commit para guardar los cambios en la base de datos
+        db.session.commit()
+        
+        flash(f'Costo total del pedido: ${costo_total}')  # Mostrar el costo total al usuario
+        
+        # Redirigir a una página de confirmación o realizar otras acciones necesarias
+        
+    return render_template("pizzas.html", form=form_pizza)
+
+
+
+
+
+
 @app.errorhandler(404)
 def pagina_no_encontrada(e):
     return render_template('404.html'), 404
