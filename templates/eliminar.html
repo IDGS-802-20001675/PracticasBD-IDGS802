@@ -1,0 +1,48 @@
+{% extends 'layout2.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Eliminar Pizza</h3>
+            <form action="/eliminar" method="POST">
+                {{ form.csrf_token }}
+                <div class="form-group">
+                    <label for="id">ID:</label>
+                    <input type="text" id="id" name="id" required>
+                </div>
+                <div class="form-group">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="direccion">Dirección:</label>
+                    <input type="text" id="direccion" name="direccion" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefono">Teléfono:</label>
+                    <input type="text" id="telefono" name="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label for="numPizza">Número de Pizzas:</label>
+                    <input type="number" id="numPizza" name="numPizza" required>
+                </div>
+                <div class="form-group">
+                    <label for="tamano">Tamaño:</label>
+                    <input type="text" id="tamano" name="tamano" required>
+                </div>
+                <div class="form-group">
+                    <label for="ingredientes">Ingredientes:</label>
+                    <input type="text" id="ingredientes" name="ingredientes" required>
+                </div>
+                <div class="form-group">
+                    <label for="costo">Costo:</label>
+                    <input type="text" id="costo" name="costo" required>
+                </div>
+                <input type="submit" value="Eliminar" class="btn btn-danger">
+                <a href="/ABC_CompletoP" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

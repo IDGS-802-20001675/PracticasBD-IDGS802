@@ -1,0 +1,3 @@
+{'id': 15, 'nombre': 'dario', 'direccion': 'asdfghjk', 'telefono': '123456789', 'tamanio': 'Chica', 'ingredientes': ['Jamon'], 'numero': 2, 'totalP': 100, 'fecha': datetime.date(2023, 7, 7), 'dia': 'Friday'}
+{'id': 17, 'nombre': 'dario', 'direccion': 'asdfghjk', 'telefono': '123456789', 'tamanio': 'Grande', 'ingredientes': ['Jamon', 'Pinia', 'Champiniones'], 'numero': 2, 'totalP': 300, 'fecha': datetime.date(2023, 7, 7), 'dia': 'Friday'}
+{'id': 18, 'nombre': 'dario', 'direccion': 'asdfghjk', 'telefono': '123456789', 'tamanio': 'Mediana', 'ingredientes': ['Jamon', 'Pinia', 'Champiniones'], 'numero': 2, 'totalP': 220, 'fecha': datetime.date(2023, 7, 7), 'dia': 'Friday'}

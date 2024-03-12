@@ -1,13 +1,21 @@
-from flask import Flask, request, render_template, flash
+from flask import Flask, request, render_template, flash,  jsonify, redirect,url_for, Response
 from flask_wtf.csrf import CSRFProtect
+from sqlalchemy import extract
 import forms
+import json,os
+from datetime import datetime, date, timedelta
 from config import DevelopmentConfig
-from models import db, Alumnos, Maestros, Pizzas
+from models import db, Alumnos, Maestros, Pizzas, Ventas
+from calendar import monthrange
+from datetime import datetime,timedelta
 
 app = Flask(__name__)
 
 app.config.from_object(DevelopmentConfig)
 csrf = CSRFProtect(app)
+
+temporal = []
+id_pizza = 1
 
 '''     
 Rutas o decoradores
@@ -15,59 +23,134 @@ Rutas o decoradores
 '''     
 Práctica PIZZA
 '''
-@app.route("/pizzas", methods=["GET", "POST"])
+def guardar_temporal_en_txt(temporal):
+    with open("temporal.txt", "w") as file:
+        for pedido in temporal:
+            file.write(str(pedido) + "\n")
+
+datoel=forms.PizzaForm()
+
+
+
+@app.route("/pizza", methods=["GET", "POST"])
 def pizzas():
-    form_pizza = forms.UserForm4(request.form)
+    global temporal, id_pizza, datoel
+    pizza_form = forms.PizzaForm(request.form)
     
-    if request.method == 'POST' and form_pizza.validate():
-        tamano_pizza = form_pizza.tamano.data
-        num_pizza = form_pizza.numPizza.data
+    ventas = None 
+    suma_total = None 
+    mensaje=None
+    
+    if request.method == "POST" and not ("fecha_consulta" in request.form or "mes_consulta" in request.form or "dia_consulta" in request.form):
+        ingredientes_seleccionados = []
+        if pizza_form.jamon.data:
+            ingredientes_seleccionados.append("Jamon")
+        if pizza_form.pinia.data:
+            ingredientes_seleccionados.append("Pinia")
+        if pizza_form.champiniones.data:
+            ingredientes_seleccionados.append("Champiniones")
+
+        tamanio_seleccionado = pizza_form.tamanio.data
+        if tamanio_seleccionado == 'Chica':
+            tamanio_int = 40
+        elif tamanio_seleccionado == 'Mediana':
+            tamanio_int = 80
+        else:
+            tamanio_int = 120
+
+        num_ingredientes = len(ingredientes_seleccionados) * 10
+        total = int(num_ingredientes) + tamanio_int
+        totalP = total * pizza_form.numero.data
+        fecha_seleccionada=pizza_form.fecha.data
+        dia_semana = fecha_seleccionada.strftime('%A')
+        print(dia_semana)
+
         
-        # Mapear los tamaños de pizza a valores numéricos
-        tamanos = {'Chica': 1, 'Mediana': 2, 'Grande': 3}
+        temporal.append({ 
+            'id': id_pizza,
+            'nombre': pizza_form.nombre.data,
+            'direccion': pizza_form.direccion.data,
+            'telefono': pizza_form.telefono.data,
+            'tamanio': tamanio_seleccionado,
+            'ingredientes': ingredientes_seleccionados,
+            'numero': pizza_form.numero.data,
+            'totalP': totalP,
+            'fecha': pizza_form.fecha.data,
+            'dia':dia_semana
+        })
+        guardar_temporal_en_txt(temporal)   
+        datoel=pizza_form
         
-        # Obtener el tamaño seleccionado del formulario
-        tamano_numerico = tamanos.get(tamano_pizza, 0)
-        
-        # Calcular el costo base del tamaño de la pizza
-        costo_base_por_tamano = {'Chica': 40, 'Mediana': 80, 'Grande': 120}
-        costo_base = costo_base_por_tamano.get(tamano_pizza, 0)
-        
-        # Calcular el costo de los ingredientes seleccionados
-        costo_ingredientes = 0
-        if 'jamon' in request.form:
-            costo_ingredientes += 10
-        if 'pina' in request.form:
-            costo_ingredientes += 10
-        if 'champinones' in request.form:
-            costo_ingredientes += 10
-        
-        # Calcular el costo total de la pizza
-        costo_total = (costo_base + costo_ingredientes) * num_pizza
-        
-        # Crear un objeto de pizza con la información recibida
-        nueva_pizza = Pizzas(
-            nombre=form_pizza.nombre.data,
-            direccion=form_pizza.direccion.data,
-            telefono=form_pizza.telefono.data,
-            tamano=tamano_numerico,  # Asignar el valor numérico correspondiente
-            costo=costo_total
+        id_pizza += 1
+    if request.method == "POST" or request.method == "GET" and "mes_consulta" not in request.form:
+        fecha_consulta_str = request.form.get("fecha_consulta")
+        if fecha_consulta_str:
+            fecha_consulta = datetime.strptime(fecha_consulta_str, "%Y-%m-%d").date()
+            
+            ventas = Pizzas.query.filter(Pizzas.fecha >= fecha_consulta).filter(Pizzas.fecha < fecha_consulta + timedelta(days=1)).all()
+            suma_total = sum(venta.total for venta in ventas)
+            
+    if request.method == "POST" or request.method == "GET" and "mes_consulta" in request.form:
+        mes_consulta_str = request.form.get("mes_consulta")
+        if mes_consulta_str:
+            fecha_consulta = datetime.now().replace(month=int(mes_consulta_str))
+            
+            ventas = Pizzas.query.filter(extract('month', Pizzas.fecha) == int(mes_consulta_str)).all()
+            suma_total = sum(venta.total for venta in ventas)
+            
+    if request.method == "POST" or request.method == "GET" and "dia_consulta" in request.form:
+        dia_consulta = request.form.get("dia_consulta")
+        if dia_consulta:
+         ventas = Pizzas.query.filter(Pizzas.dia == dia_consulta).all()
+         suma_total = sum(venta.total for venta in ventas)   
+    
+    return render_template("pizza.html", form=pizza_form, temporal=temporal, ventas=ventas,suma_total=suma_total,mensaje=mensaje)
+
+
+
+
+
+
+
+@app.route("/confirmar", methods=["POST"])
+def confirmar_registro():
+    global temporal
+
+
+    for registro in temporal:
+        pizza = Pizzas(
+            nombre=registro['nombre'],
+            direccion=registro['direccion'],
+            telefono=registro['telefono'],
+            tamanio=registro['tamanio'],
+            ingredientes=', '.join(registro['ingredientes']),  
+            numero=registro['numero'],
+            total=registro['totalP'],
+            fecha=registro['fecha'],
+            dia=registro['dia']
+            
         )
-        
-        # Agregar la nueva pizza a la sesión de la base de datos
-        db.session.add(nueva_pizza)
-        
-        # Hacer commit para guardar los cambios en la base de datos
-        db.session.commit()
-        
-        flash(f'Costo total del pedido: ${costo_total}')  # Mostrar el costo total al usuario
-        
-        # Redirigir a una página de confirmación o realizar otras acciones necesarias
-        
-    return render_template("pizzas.html", form=form_pizza)
+    pizza.total = sum(registro['totalP'] for registro in temporal)
+    print(pizza)
+    
+    db.session.add(pizza)
 
+    db.session.commit()
+    temporal = [] 
+    mensaje="Venta exitosa"
+    flash(mensaje)
 
+    return redirect("/pizza")  
 
+ 
+@app.route("/eliminarPizza", methods=["POST"])
+def eliminar_registro():
+    global temporal, datoel
+    
+    id_pizza = int(request.form["id"])
+    temporal = [registro for registro in temporal if registro["id"] != id_pizza]
+   # return redirect(url_for("/pizza", form=datoel))
+    return render_template("pizza.html", form=datoel, temporal=temporal)
 
 
 
